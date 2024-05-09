@@ -35,17 +35,18 @@ class pure_pursuit :
 
         #TODO: (1) subscriber, publisher 선언
         rospy.Subscriber("/global_path", Path, self.global_path_callback)
-        rospy.Subscriber("/lattice_path", Path, self.path_callback)
-        
+        rospy.Subscriber("/local_path", Path, self.path_callback)
+        # rospy.Subscriber("/lattice_path", Path, self.path_callback)
+
         rospy.Subscriber("/odom", Odometry, self.odom_callback)
-        rospy.Subscriber("/Ego_topic",EgoVehicleStatus, self.status_callback) 
+        rospy.Subscriber("/Ego_topic",EgoVehicleStatus, self.status_callback)
         self.ctrl_cmd_pub = rospy.Publisher('ctrl_cmd_0',CtrlCmd, queue_size=1)
 
         self.ctrl_cmd_msg = CtrlCmd()
         self.ctrl_cmd_msg.longlCmdType = 1
 
         self.is_path = False
-        self.is_odom = False 
+        self.is_odom = False
         self.is_status = False
         self.is_global_path = False
 
@@ -54,12 +55,12 @@ class pure_pursuit :
         self.forward_point = Point()
         self.current_postion = Point()
 
-        self.vehicle_length = None
-        self.lfd = None
+        self.vehicle_length = 5.155
+        self.lfd = 10
         if self.vehicle_length is None or self.lfd is None:
             print("you need to change values at line 57~58 ,  self.vegicle_length , lfd")
             exit()
-        self.min_lfd = 5
+        self.min_lfd = 10
         self.max_lfd = 30
         self.lfd_gain = 0.78
         self.target_velocity = 40
@@ -100,7 +101,7 @@ class pure_pursuit :
                     self.ctrl_cmd_msg.brake = -output
 
                 #TODO: (8) 제어입력 메세지 Publish
-                print(steering)
+                # print(steering)
                 self.ctrl_cmd_pub.publish(self.ctrl_cmd_msg)
                 
             rate.sleep()
@@ -108,6 +109,7 @@ class pure_pursuit :
     def path_callback(self,msg):
         self.is_path=True
         self.path=msg  
+
 
     def odom_callback(self,msg):
         self.is_odom=True
@@ -146,7 +148,7 @@ class pure_pursuit :
             self.lfd=self.min_lfd
         elif self.lfd > self.max_lfd :
             self.lfd=self.max_lfd
-        rospy.loginfo(self.lfd)
+        # rospy.loginfo(self.lfd)
         
         vehicle_position=self.current_postion
         self.is_look_forward_point= False
