@@ -54,8 +54,8 @@ class dijkstra_path_pub :
         self.global_planner=Dijkstra(self.nodes,self.links)
 
         #TODO: (2) 시작 Node 와 종료 Node 정의
-        self.node_list = ['A119BS010209', 'A119BS010313', 'A119BS010316','A119BS010324', 'A119BS010184']
-        # self.node_list = ['A119BS010209', 'A119BS010313', 'A119BS010316','A119BS010324', 'A119BS010184', 'parking']
+        self.node_list = ['A119BS010209', 'A119BS010313', 'A119BS010324', 'parking']
+        # self.node_list = ['A119BS010209', 'A119BS010143', 'A119BS010324', 'parking']
 
 
         self.global_path_msg = Path()
