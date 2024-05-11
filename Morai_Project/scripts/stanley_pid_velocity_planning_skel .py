@@ -29,7 +29,7 @@ from tf.transformations import euler_from_quaternion,quaternion_from_euler
 # 7. 곡률 기반 속도 계획
 # 8. 제어입력 메세지 Publish
 
-class pure_pursuit :
+class stanley :
     def __init__(self):
         rospy.init_node('stanley', anonymous=True)
 
@@ -140,92 +140,6 @@ class pure_pursuit :
                 currnet_waypoint = i
         return currnet_waypoint
 
-    def calc_pure_pursuit(self,):
-
-        #TODO: (2) 속도 비례 Look Ahead Distance 값 설정
-        self.lfd = (self.status_msg.velocity.x) * self.lfd_gain
-        
-        if self.lfd < self.min_lfd : 
-            self.lfd=self.min_lfd
-        elif self.lfd > self.max_lfd :
-            self.lfd=self.max_lfd
-        # rospy.loginfo(self.lfd)
-        
-        vehicle_position=self.current_position
-        self.is_look_forward_point= False
-
-        translation = [vehicle_position.x, vehicle_position.y]
-
-        #TODO: (3) 좌표 변환 행렬 생성
-        trans_matrix = np.array([
-                [cos(self.vehicle_yaw), -sin(self.vehicle_yaw),translation[0]],
-                [sin(self.vehicle_yaw),cos(self.vehicle_yaw),translation[1]],
-                [0                    ,0                    ,1            ]])
-
-        det_trans_matrix = np.linalg.inv(trans_matrix)
-
-        for num,i in enumerate(self.path.poses) :
-            path_point=i.pose.position
-
-            global_path_point = [path_point.x,path_point.y,1]
-            local_path_point = det_trans_matrix.dot(global_path_point)    
-
-            if local_path_point[0]>0 :
-                dis = sqrt(pow(local_path_point[0],2)+pow(local_path_point[1],2))
-                if dis >= self.lfd :
-                    self.forward_point = path_point
-                    self.is_look_forward_point = True
-                    break
-        
-        #TODO: (4) Steering 각도 계산
-        theta = atan2(local_path_point[1],local_path_point[0])
-        steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)
-        
-        return steering
-
-    def calc_stanley_control_relative(self,):
-        k = 0.5  # Stanley gain
-        
-        vehicle_position=self.current_position
-        translation = [vehicle_position.x, vehicle_position.y]
-        
-        #TODO: (3) 좌표 변환 행렬 생성
-        trans_matrix = np.array([
-                [cos(self.vehicle_yaw), -sin(self.vehicle_yaw),translation[0]],
-                [sin(self.vehicle_yaw),cos(self.vehicle_yaw),translation[1]],
-                [0                    ,0                    ,1            ]])
-
-        det_trans_matrix = np.linalg.inv(trans_matrix)
-
-        for num,i in enumerate(self.path.poses):
-            path_point=i.pose.position
-
-            global_path_point = [path_point.x,path_point.y,1]
-            local_path_point = det_trans_matrix.dot(global_path_point)
-            
-            if local_path_point[0] > 0 :
-                dis = sqrt(pow(local_path_point[0],2)+pow(local_path_point[1],2))
-                if dis >= self.lfd :
-                    self.forward_point = path_point
-                    break
-
-        # Compute cross track error
-        cross_track_error = local_path_point[1]
-        # Compute heading error
-        desired_heading = atan2(local_path_point[1], local_path_point[0])
-        
-        heading_error = desired_heading - self.vehicle_yaw
-
-        # Calculate steering using Stanley method
-        steering = heading_error
-        
-        # steering = heading_error + atan2(k * cross_track_error, self.status_msg.velocity.x*3.6)
-
-        rospy.loginfo("desired_heading: %s", desired_heading)
-        rospy.loginfo("vehicle_yaw: %s", self.vehicle_yaw)
-        # rospy.loginfo("steering: %s", steering)
-        
-        return steering
 
     def calc_stanley_control(self):
             k = 5  # Stanley gain
@@ -334,6 +248,6 @@ class velocityPlanning:
 
 if __name__ == '__main__':
     try:
-        test_track=pure_pursuit()
+        test_track=stanley()
     except rospy.ROSInterruptException:
         pass
